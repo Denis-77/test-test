@@ -1,0 +1,8 @@
+def task(array):
+    try:
+        return array.index('0')
+    except ValueError:
+        return 'нули в массиве отсутствуют'
+
+print(task("111111111110000000000000000"))
+print(task("11111111111"))
