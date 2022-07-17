@@ -1,0 +1,49 @@
+import re
+import requests
+
+
+url = 'https://ru.wikipedia.org/wiki/Категория:Животные_по_алфавиту'
+animal_list: list[str] = []
+
+while True:
+    pattern = ('mw-category mw-category-columns">'
+               '<div class="mw-category-group">.+</li>'
+               '</ul></div></div></div>')
+    page = requests.get(url).text
+    response = re.search(pattern, page, re.S)
+
+    pattern = 'title="([^<>]*)"'
+    names = re.findall(pattern, response[0])
+    animal_list.extend(names)
+
+    last_animal: str = animal_list.pop()
+    if last_animal.startswith('A'):
+        break
+    link = 'https://ru.wikipedia.org/w/index.php?title=' \
+           'Категория:Животные_по_алфавиту&subcatfrom=%D0%90' \
+           '&filefrom=%D0%90&pagefrom={animal}#mw-pages'.format(
+        animal=last_animal
+    )
+    url = link
+
+for index in range(len(animal_list) - 1, 0, -1):
+    if animal_list[index].startswith('A'):
+        del animal_list[index]
+    elif animal_list[index].startswith('Я'):
+        break
+
+animal_list.remove('Helobdella nununununojensis')
+
+stat_letters = {}
+for animal in animal_list:
+    if animal[0] == 'Ё':
+        animal = 'Е' + animal[1:]
+    if animal[0] not in stat_letters:
+        stat_letters[animal[0]] = 0
+    stat_letters[animal[0]] += 1
+
+for letter in sorted(stat_letters):
+    print('{letter}: {count}'.format(
+        letter=letter,
+        count=stat_letters[letter]
+    ))
